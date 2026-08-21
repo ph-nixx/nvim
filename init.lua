@@ -41,40 +41,7 @@ vim.opt.listchars = { tab = "  ", trail = "·", nbsp = "␣" }
 vim.o.inccommand = "split"
 
 -- [[ Basic Keymaps ]]
-
 local cached_prev_cmd = ""
-local shell_buf = nil
-local function shell_prompt(prev_cmd)
-    vim.ui.input({ prompt = " ❯ ", completion = "shellcmdline", default = prev_cmd }, function(cmd)
-        if not cmd or cmd == "" then
-            if cmd == "" and shell_buf and vim.api.nvim_buf_is_valid(shell_buf) then
-                local win = vim.fn.bufwinid(shell_buf)
-                if win ~= -1 then
-                    vim.api.nvim_win_close(win, true)
-                end
-                vim.api.nvim_buf_delete(shell_buf, { force = true })
-                shell_buf = nil
-            end
-            return
-        end
-        if not (shell_buf and vim.api.nvim_buf_is_valid(shell_buf)) then
-            shell_buf = vim.api.nvim_create_buf(false, true)
-        end
-
-        local result = vim.fn.systemlist(cmd)
-        vim.api.nvim_buf_set_lines(shell_buf, 0, -1, false, result)
-        local win = vim.fn.bufwinid(shell_buf)
-        if win == -1 then
-            vim.cmd("split")
-            vim.api.nvim_set_current_buf(shell_buf)
-        end
-        vim.cmd("redraw")
-        vim.cmd("normal! gg")
-        cached_prev_cmd = cmd
-        vim.schedule(shell_prompt)
-    end)
-end
-
 vim.keymap.set("n", "<leader>;", function()
     shell_prompt(cached_prev_cmd)
 end, { desc = "Quick shell comand" })
@@ -147,7 +114,7 @@ require("lazy").setup({
         event = "VimEnter",
         opts = {
             -- delay between pressing a key and opening which-key (milliseconds)
-            delay = 0,
+            delay = 5,
             icons = {
                 mappings = vim.g.have_nerd_font,
                 keys = vim.g.have_nerd_font and {} or {
@@ -285,9 +252,6 @@ require("lazy").setup({
                     -- Rename the variable under your cursor.
                     map("grn", vim.lsp.buf.rename, "[R]e[n]ame")
 
-                    -- Execute a code action, usually your cursor needs to be on top of an error
-                    map("gra", vim.lsp.buf.code_action, "[G]oto Code [A]ction", { "n", "x" })
-
                     -- Find references for the word under your cursor.
                     map("grr", require("telescope.builtin").lsp_references, "[G]oto [R]eferences")
 
@@ -305,9 +269,6 @@ require("lazy").setup({
 
                     -- Fuzzy find all the symbols in your current workspace.
                     map("gW", require("telescope.builtin").lsp_dynamic_workspace_symbols, "Open Workspace Symbols")
-
-                    -- Jump to the type of the word under your cursor.
-                    map("grt", require("telescope.builtin").lsp_type_definitions, "[G]oto [T]ype Definition")
 
                     -- Hover documentation with rounded border.
                     map("K", function()
@@ -609,3 +570,35 @@ vim.api.nvim_create_autocmd({ "CursorHold", "DiagnosticChanged", "ModeChanged" }
         show_diags()
     end,
 })
+
+local shell_buf = nil
+local function shell_prompt(prev_cmd)
+    vim.ui.input({ prompt = " ❯ ", completion = "shellcmdline", default = prev_cmd }, function(cmd)
+        if not cmd or cmd == "" then
+            if cmd == "" and shell_buf and vim.api.nvim_buf_is_valid(shell_buf) then
+                local win = vim.fn.bufwinid(shell_buf)
+                if win ~= -1 then
+                    vim.api.nvim_win_close(win, true)
+                end
+                vim.api.nvim_buf_delete(shell_buf, { force = true })
+                shell_buf = nil
+            end
+            return
+        end
+        if not (shell_buf and vim.api.nvim_buf_is_valid(shell_buf)) then
+            shell_buf = vim.api.nvim_create_buf(false, true)
+        end
+
+        local result = vim.fn.systemlist(cmd)
+        vim.api.nvim_buf_set_lines(shell_buf, 0, -1, false, result)
+        local win = vim.fn.bufwinid(shell_buf)
+        if win == -1 then
+            vim.cmd("split")
+            vim.api.nvim_set_current_buf(shell_buf)
+        end
+        vim.cmd("redraw")
+        vim.cmd("normal! gg")
+        cached_prev_cmd = cmd
+        vim.schedule(shell_prompt)
+    end)
+end
