@@ -15,7 +15,7 @@ vim.o.breakindent = true
 vim.o.undofile = true
 vim.o.signcolumn = "yes"
 vim.o.updatetime = 100
-vim.o.timeoutlen = 300
+vim.o.timeoutlen = 200
 vim.o.cursorline = true
 vim.o.scrolloff = 10
 vim.o.confirm = true
@@ -41,11 +41,6 @@ vim.opt.listchars = { tab = "  ", trail = "·", nbsp = "␣" }
 vim.o.inccommand = "split"
 
 -- [[ Basic Keymaps ]]
-local cached_prev_cmd = ""
-vim.keymap.set("n", "<leader>;", function()
-    shell_prompt(cached_prev_cmd)
-end, { desc = "Quick shell comand" })
-
 --  See `:help vim.keymap.set()`
 vim.keymap.set("n", "<leader>e", "<CMD>Oil<CR>", { desc = "Open parent directory" })
 
@@ -79,7 +74,9 @@ vim.api.nvim_create_autocmd("TextYankPost", {
     end,
 })
 
--- [[ Install `lazy.nvim` plugin manager ]]
+-- [[ Core Plugins ]]
+
+-- Install plugin manager
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
     local lazyrepo = "https://github.com/folke/lazy.nvim.git"
@@ -93,7 +90,6 @@ end
 local rtp = vim.opt.rtp
 rtp:prepend(lazypath)
 
--- [[ Configure and install plugins ]]
 require("lazy").setup({
     "NMAC427/guess-indent.nvim", -- Detect tabstop and shiftwidth automatically
     { -- Adds git related signs to the gutter, as well as utilities for managing changes
@@ -526,8 +522,8 @@ require("lazy").setup({
     ui = { icons = vim.g.have_nerd_font and {} },
 })
 
+-- [[ Proprietary Functionality ]]
 local diag_ns = vim.api.nvim_create_namespace("inline_diag")
-
 local function show_diags()
     local lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
     local diags = vim.diagnostic.get(0, {
@@ -561,7 +557,7 @@ local function show_diags()
     })
 end
 
-vim.api.nvim_create_autocmd({ "CursorHold", "DiagnosticChanged", "ModeChanged" }, {
+vim.api.nvim_create_autocmd({ "CursorHold", "DiagnosticChanged" }, {
     callback = function()
         vim.api.nvim_buf_clear_namespace(0, diag_ns, 0, -1)
         if vim.api.nvim_get_mode().mode == "i" then
@@ -571,7 +567,6 @@ vim.api.nvim_create_autocmd({ "CursorHold", "DiagnosticChanged", "ModeChanged" }
     end,
 })
 
-local shell_buf = nil
 local function shell_prompt(prev_cmd)
     vim.ui.input({ prompt = " ❯ ", completion = "shellcmdline", default = prev_cmd }, function(cmd)
         if not cmd or cmd == "" then
@@ -602,3 +597,9 @@ local function shell_prompt(prev_cmd)
         vim.schedule(shell_prompt)
     end)
 end
+
+local shell_buf = nil
+local cached_prev_cmd = ""
+vim.keymap.set("n", "<leader>;", function()
+    shell_prompt(cached_prev_cmd)
+end, { desc = "Quick shell comand" })
