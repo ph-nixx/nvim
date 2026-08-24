@@ -352,7 +352,7 @@ require("lazy").setup({
             notify_on_error = false,
             format_on_save = function(bufnr)
                 -- Disable "format_on_save lsp_fallback" for langs
-                local disable_filetypes = { c = true, cpp = true }
+                local disable_filetypes = { cpp = true }
                 if disable_filetypes[vim.bo[bufnr].filetype] then
                     return nil
                 else
@@ -365,8 +365,12 @@ require("lazy").setup({
                 json = { "jq" },
                 sql = { "pg_format" },
                 ocaml = { "ocamlformat" },
+                c = { "clang-format" },
             },
-            formatters = { jq = { args = { "--indent", "2" } } },
+            formatters = {
+                jq = { args = { "--indent", "2" } },
+                ["clang-format"] = { args = { "-style={BasedOnStyle: llvm, IndentWidth: 4}" } },
+            },
         },
     },
 
@@ -468,7 +472,7 @@ require("lazy").setup({
                 elseif vim.fn.has("unix") == 1 then
                     os_name = "unix"
                 end
-                return string.format("%s :: %s  ", lang, os_name)
+                return string.format("%s :: %s", lang, os_name)
             end
 
             ---@diagnostic disable-next-line: duplicate-set-field
@@ -567,6 +571,8 @@ vim.api.nvim_create_autocmd({ "CursorHold", "DiagnosticChanged" }, {
     end,
 })
 
+local shell_buf = nil
+local cached_prev_cmd = ""
 local function shell_prompt(prev_cmd)
     vim.ui.input({ prompt = " ❯ ", completion = "shellcmdline", default = prev_cmd }, function(cmd)
         if not cmd or cmd == "" then
@@ -597,9 +603,12 @@ local function shell_prompt(prev_cmd)
         vim.schedule(shell_prompt)
     end)
 end
-
-local shell_buf = nil
-local cached_prev_cmd = ""
 vim.keymap.set("n", "<leader>;", function()
     shell_prompt(cached_prev_cmd)
 end, { desc = "Quick shell comand" })
+
+if vim.o.background == "dark" then
+    vim.cmd.colorscheme("lackluster")
+else
+    vim.cmd.colorscheme("evergarden")
+end

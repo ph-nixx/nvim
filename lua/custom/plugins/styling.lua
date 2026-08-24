@@ -1,7 +1,6 @@
 return {
     {
         "slugbyte/lackluster.nvim",
-        lazy = false,
         priority = 1000,
         init = function()
             local lackluster = require("lackluster")
@@ -11,23 +10,62 @@ return {
                     lack = lackluster_color.green,
                     blue = lackluster_color.green,
                 },
-                tweak_highlight = { ["@comment"] = { overwrite = false, italic = true } },
+                tweak_highlight = {
+                    ["@comment"] = { overwrite = false, italic = true },
+                    -- Dark auto complete
+                    Pmenu = { overwrite = true, bg = "NONE" },
+                    TelescopeMatching = { overwrite = true, bold = true, italic = false, underline = true },
+                    DiagnosticVirtualTextWarn = { overwrite = true, fg = "#FFAA88" },
+                    MatchParen = { overwrite = true, fg = "#ffffff", bold = true },
+                },
             })
-            vim.cmd.colorscheme("lackluster")
-
-            -- Dark auto complete
-            vim.api.nvim_set_hl(0, "Pmenu", { bg = "NONE" })
-
-            -- Dark snippets
-            -- vim.api.nvim_set_hl(0, "NormalFloat", { bg = "NONE", fg = "NONE" })
-            -- vim.api.nvim_set_hl(0, "FloatBorder", { bg = "NONE", fg = "NONE" })
-
-            -- String
-            -- vim.api.nvim_set_hl(0, "@string", { fg = "#9e5c49" })
-
-            vim.api.nvim_set_hl(0, "TelescopeMatching", { bold = true, italic = false, underline = true })
-            vim.api.nvim_set_hl(0, "DiagnosticVirtualTextWarn", { fg = "#FFAA88" })
-            vim.api.nvim_set_hl(0, "MatchParen", { fg = "#ffffff", bold = true })
         end,
+    },
+    {
+        "everviolet/nvim",
+        name = "evergarden",
+        priority = 1000,
+        opts = {
+            theme = {
+                variant = "summer",
+                accent = "green",
+            },
+            color_overrides = {
+                skye = "#5D8980",
+            },
+            overrides = {
+                Function = { fg = "#000000" },
+                ["@function"] = { fg = "#000000" },
+                ["@function.call"] = { fg = "#000000" },
+                ["@function.method.call"] = { fg = "#000000" },
+                ["@variable"] = { fg = "#4E5D5F" },
+                ["@property"] = { fg = "#4E5D5F" },
+                ["@keyword.operator"] = { fg = "#AC5354" },
+                ["@string"] = { fg = "#9AA169" },
+                MsgArea = { fg = "#455355", bg = "NONE" },
+                TelescopeNormal = { link = "Normal" },
+                TelescopeBorder = { fg = "#ACB5A4", bg = "#F5EFE6" },
+                TelescopeMatching = { style = { "bold", "underline" } },
+                TelescopePromptNormal = { fg = "#000000" },
+                Cursor = { bg = "#000000" },
+                MatchParen = { fg = "#000000", style = { "bold" } },
+                ["@operator"] = { fg = "#AC5354", style = { "bold" } },
+            },
+            style = {
+                keyword = {},
+                types = {},
+            },
+            editor = {
+                transparent_background = false,
+                sign = { color = "none" },
+                float = {
+                    color = "surface0",
+                    solid_border = false,
+                },
+                completion = {
+                    color = "surface0",
+                },
+            },
+        },
     },
 }
