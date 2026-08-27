@@ -605,10 +605,10 @@ local function shell_prompt(prev_cmd)
 end
 vim.keymap.set("n", "<leader>;", function()
     shell_prompt(cached_prev_cmd)
-end, { desc = "Quick shell comand" })
+end, { desc = "Shell command" })
 
 if vim.o.background == "dark" then
     vim.cmd.colorscheme("lackluster")
 else
-    vim.cmd.colorscheme("evergarden")
+    vim.cmd.colorscheme("gruvbox-material")
 end

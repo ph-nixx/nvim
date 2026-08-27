@@ -22,51 +22,30 @@ return {
         end,
     },
     {
-        "everviolet/nvim",
-        name = "evergarden",
+        "sainnhe/gruvbox-material",
         priority = 1000,
-        opts = {
-            theme = {
-                variant = "summer",
-                accent = "green",
-            },
-            overrides = {
-                Function = { fg = "#000000" },
-                ["@function"] = { fg = "#000000" },
-                ["@function.call"] = { fg = "#000000" },
-                ["@function.method.call"] = { fg = "#000000" },
-                ["@function.builtin"] = { fg = "#000000" },
-                ["@module"] = { fg = "#000000" },
-                ["@operator"] = { fg = "#AC5354" },
-                ["@keyword.operator"] = { fg = "#AC5354" },
-                ["@annotation"] = { link = "@keyword" },
-                ["@type"] = { fg = "#b7945c" },
-                ["@string"] = { fg = "#647a4d" },
-                ["@string.special"] = { fg = "#647a4d" },
-                MsgArea = { fg = "#455355", bg = "NONE" },
-                TelescopeNormal = { link = "Normal" },
-                TelescopeBorder = { fg = "#ACB5A4", bg = "#F5EFE6" },
-                TelescopeMatching = { style = { "bold", "underline" } },
-                TelescopePromptNormal = { fg = "#000000" },
-                Cursor = { bg = "#000000" },
-                MatchParen = { fg = "#000000", style = { "bold" } },
-                BlinkCmpMenuBorder = { fg = "#000000", bg = "#EDE8DD" },
-            },
-            style = {
-                keyword = {},
-                types = {},
-            },
-            editor = {
-                transparent_background = false,
-                sign = { color = "none" },
-                float = {
-                    color = "surface0",
-                    solid_border = false,
-                },
-                completion = {
-                    color = "surface0",
-                },
-            },
-        },
+        config = function()
+            vim.o.background = "light"
+            vim.o.termguicolors = true
+            vim.g.gruvbox_material_background = "hard" -- "hard" | "medium" | "soft"
+            vim.g.gruvbox_material_foreground = "material" -- "material" | "mix" | "original"
+            vim.g.gruvbox_material_better_performance = 1
+            vim.api.nvim_create_autocmd("ColorScheme", {
+                pattern = "gruvbox-material",
+                callback = function()
+                    vim.api.nvim_set_hl(0, "MatchParen", { fg = "#000000", bold = true })
+                    vim.api.nvim_set_hl(0, "TelescopeMatching", { bold = true, italic = false, underline = true })
+                    cursor_bg = vim.api.nvim_get_hl(0, { name = "CursorLine" }).bg
+                    vim.api.nvim_set_hl(0, "NormalFloat", { bg = cursor_bg })
+                    vim.api.nvim_set_hl(0, "FloatBorder", { bg = cursor_bg })
+                    vim.api.nvim_set_hl(0, "Pmenu", { bg = cursor_bg })
+                    vim.api.nvim_set_hl(0, "VirtualTextError", { bg = cursor_bg })
+                    vim.api.nvim_set_hl(0, "VirtualTextWarning", { bg = cursor_bg })
+                    vim.api.nvim_set_hl(0, "VirtualTextHint", { bg = cursor_bg })
+                    vim.api.nvim_set_hl(0, "VirtualTextInfo", { bg = cursor_bg })
+                    vim.api.nvim_set_hl(0, "VirtualTextOk", { bg = cursor_bg })
+                end,
+            })
+        end,
     },
 }
