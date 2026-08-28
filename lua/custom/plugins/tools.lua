@@ -87,6 +87,15 @@ return {
 
             require("render-markdown").setup(opts)
 
+            -- Pick the colorscheme to match the OS/terminal background.
+            -- `background` is set by the terminal/OS integration before this
+            -- file loads; the markdown palette below follows the same check.
+            if vim.o.background == "dark" then
+                vim.cmd.colorscheme("lackluster")
+            else
+                vim.cmd.colorscheme("gruvbox-material")
+            end
+
             -- Lackluster-matched palette so markdown reads well on the muted theme.
             -- render-markdown creates its groups with `default = true`, so these
             -- overrides must run AFTER setup; the ColorScheme autocmd re-applies
@@ -200,10 +209,130 @@ return {
                 end
             end
 
-            style_markdown()
+            -- Gruvbox Material Light palette, mirroring style_markdown() above
+            -- but for `background = "light"`. The token set has no distinct
+            -- orange or bright accent beyond yellow/aqua, so those roles reuse
+            -- yellow and aqua respectively instead of inventing new hex values.
+            local gm = {
+                fg1 = "#4f3829", -- color15, darkest/most saturated text (emphasis)
+                grey0 = "#a89984", -- color8
+                grey1 = "#928374", -- inactive_tab_foreground
+                grey2 = "#7c6f64", -- color7
+                green = "#6c782e", -- color2/10
+                yellow = "#b47109", -- color3/11 (also stands in for orange)
+                red = "#c14a4a", -- color1/9
+                blue = "#45707a", -- url_color, color4/12
+                aqua = "#4c7a5d", -- color6/14 (stands in for lackluster's "luster")
+                purple = "#945e80", -- color5/13
+                bg0 = "#f9f5d7", -- background
+                bg_green = "#dde5c2", -- mark1_background
+                bg_yellow = "#f9eabf", -- selection_background / mark2_background
+                bg_tan = "#f0ddc3", -- mark3_background
+                bg_neutral = "#f2e5bc", -- inactive_tab_background
+                bg_tab = "#f3eac7", -- tab_bar_background
+            }
+
+            local function style_markdown_light()
+                local hl = function(group, val)
+                    vim.api.nvim_set_hl(0, group, val)
+                end
+
+                -- Headings: colored icon/text per level + subtle full-width tints.
+                local heads = {
+                    { fg = gm.green, bg = gm.bg_green },
+                    { fg = gm.aqua, bg = gm.bg_neutral },
+                    { fg = gm.yellow, bg = gm.bg_yellow },
+                    { fg = gm.yellow, bg = gm.bg_tan },
+                    { fg = gm.grey2, bg = gm.bg_tab },
+                    { fg = gm.grey0, bg = gm.bg0 },
+                }
+                for i, h in ipairs(heads) do
+                    hl("RenderMarkdownH" .. i, { fg = h.fg, bold = true })
+                    hl("RenderMarkdownH" .. i .. "Bg", { bg = h.bg })
+                    hl("@markup.heading." .. i .. ".markdown", { fg = h.fg, bold = true })
+                end
+
+                -- Code: raised blocks + readable inline code.
+                hl("RenderMarkdownCode", { bg = gm.bg_tab })
+                hl("RenderMarkdownCodeBorder", { bg = gm.bg_tan })
+                hl("RenderMarkdownCodeInfo", { fg = gm.grey0 })
+                hl("RenderMarkdownCodeInline", { fg = gm.fg1, bg = gm.bg_neutral })
+
+                -- Lists, quotes, rules.
+                hl("RenderMarkdownBullet", { fg = gm.fg1 })
+                hl("RenderMarkdownDash", { fg = gm.grey1 })
+                hl("RenderMarkdownQuote", { fg = gm.grey0, italic = true })
+                hl("RenderMarkdownSign", { fg = gm.grey1 })
+
+                -- Checkboxes.
+                hl("RenderMarkdownChecked", { fg = gm.green })
+                hl("RenderMarkdownUnchecked", { fg = gm.fg1 })
+                hl("RenderMarkdownTodo", { fg = gm.yellow })
+
+                -- Tables.
+                hl("RenderMarkdownTableHead", { fg = gm.grey2 })
+                hl("RenderMarkdownTableRow", { fg = gm.grey2 })
+                hl("RenderMarkdownTableFill", { fg = gm.grey0 })
+                hl("@markup.heading", { fg = gm.fg1, bold = true })
+
+                -- Links.
+                hl("RenderMarkdownLink", { fg = gm.blue })
+                hl("@markup.link", { fg = gm.blue, underline = true })
+                hl("@markup.link.label", { fg = gm.blue, underline = true })
+                hl("@markup.link.label.markdown_inline", { fg = gm.blue, underline = true })
+                hl("@markup.link.url", { fg = gm.blue, underline = true })
+
+                -- Highlights, math.
+                hl("RenderMarkdownInlineHighlight", { fg = gm.bg0, bg = gm.yellow })
+                hl("RenderMarkdownMath", { fg = gm.yellow })
+
+                -- Emphasis.
+                hl("@markup.strong", { bold = true, fg = gm.aqua })
+                hl("@markup.italic", { italic = true, fg = gm.fg1 })
+                hl("@markup.strikethrough", { strikethrough = true, fg = gm.grey0 })
+
+                -- Plain prose.
+                local normal_bg = vim.api.nvim_get_hl(0, { name = "Normal" }).bg
+                hl("RenderMarkdownNormal", { fg = gm.fg1, bg = normal_bg })
+
+                -- Callouts / quote admonitions.
+                hl("RenderMarkdownInfo", { fg = gm.green })
+                hl("RenderMarkdownSuccess", { fg = gm.green })
+                hl("RenderMarkdownHint", { fg = gm.aqua })
+                hl("RenderMarkdownWarn", { fg = gm.yellow })
+                hl("RenderMarkdownError", { fg = gm.red })
+
+                -- Language icons (code blocks, oil, ...): saturated hues read
+                -- fine directly against the light background, unlike the
+                -- lightened variants dark mode needs.
+                local icon_colors = {
+                    Azure = gm.blue,
+                    Blue = gm.blue,
+                    Cyan = gm.aqua,
+                    Green = gm.green,
+                    Grey = gm.grey2,
+                    Orange = gm.yellow,
+                    Purple = gm.purple,
+                    Red = gm.red,
+                    Yellow = gm.yellow,
+                }
+                for name, fg in pairs(icon_colors) do
+                    hl("MiniIcons" .. name, { fg = fg })
+                end
+            end
+
+            local function style_markdown_for_background()
+                if vim.o.background == "dark" then
+                    style_markdown()
+                else
+                    style_markdown_light()
+                end
+            end
+
+            style_markdown_for_background()
             vim.api.nvim_create_autocmd("ColorScheme", {
-                callback = style_markdown,
-                desc = "Re-apply render-markdown highlights for lackluster",
+                callback = style_markdown_for_background,
+                desc = "Re-apply render-markdown highlights for the active background",
             })
 
             -- Scope the plain-prose color to markdown windows only.
