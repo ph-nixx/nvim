@@ -35,14 +35,19 @@ return {
         "nvim-treesitter/nvim-treesitter",
         opts = function(_, opts)
             opts.ensure_installed = opts.ensure_installed or {}
-            vim.list_extend(opts.ensure_installed, { "tsx", "typescript", "html", "javascript" })
+            vim.list_extend(opts.ensure_installed, { "html", "javascript" })
         end,
     },
     {
         "windwp/nvim-ts-autotag",
         event = "InsertEnter",
         dependencies = { "nvim-treesitter/nvim-treesitter" },
-        opts = {},
+        opts = {
+            opts = {
+                enable_close = true,
+                enable_rename = true,
+            },
+        },
     },
     {
         "windwp/nvim-autopairs",
@@ -53,7 +58,40 @@ return {
             npairs.setup({})
             npairs.clear_rules()
             npairs.add_rule(Rule("{", "}"))
-            npairs.add_rule(Rule("$", "$"))
+            -- npairs.add_rule(Rule("$", "$"))
         end,
+    },
+    {
+        "zbirenbaum/copilot.lua",
+        dependencies = {
+            "copilotlsp-nvim/copilot-lsp",
+        },
+        cmd = "Copilot",
+        event = "InsertEnter",
+        opts = {
+            suggestion = {
+                auto_trigger = true,
+                keymap = { accept = "<Tab>" },
+            },
+        },
+        config = function(_, opts)
+            require("copilot").setup(opts)
+            require("copilot.command").disable()
+        end,
+        keys = {
+            {
+                "<leader>ct",
+                function()
+                    local client = require("copilot.client")
+                    local cmd = require("copilot.command")
+                    if client.is_disabled() then
+                        cmd.enable()
+                    else
+                        cmd.disable()
+                    end
+                end,
+                desc = "Toggle Copilot",
+            },
+        },
     },
 }

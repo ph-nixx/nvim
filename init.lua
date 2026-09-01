@@ -495,7 +495,6 @@ require("lazy").setup({
         "nvim-treesitter/nvim-treesitter",
         lazy = false,
         build = ":TSUpdate",
-        main = "nvim-treesitter.config", -- Sets main module to use for opts
         -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
         opts = {
             ensure_installed = {
@@ -511,12 +510,20 @@ require("lazy").setup({
                 "vimdoc",
                 "python",
             },
-            auto_install = true,
-            highlight = {
-                enable = true,
-            },
-            indent = { enable = true },
         },
+        config = function(_, opts)
+            -- async; no-op for parsers already installed
+            require("nvim-treesitter").install(opts.ensure_installed)
+
+            vim.api.nvim_create_autocmd("FileType", {
+                pattern = "*",
+                callback = function()
+                    if pcall(vim.treesitter.start) then
+                        vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+                    end
+                end,
+            })
+        end,
     },
 
     require("kickstart.plugins.gitsigns"), -- adds gitsigns recommend keymaps
