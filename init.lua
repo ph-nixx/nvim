@@ -366,6 +366,7 @@ require("lazy").setup({
                 sql = { "pg_format" },
                 ocaml = { "ocamlformat" },
                 c = { "clang-format" },
+                yaml = { "yamlfmt" },
             },
             formatters = {
                 jq = { args = { "--indent", "2" } },
